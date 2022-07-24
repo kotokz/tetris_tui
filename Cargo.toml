@@ -1,0 +1,12 @@
+[package]
+name = "tetris_tui"
+version = "0.1.0"
+edition = "2021"
+description = "A TUI tetris Game"
+
+[dependencies]
+crossterm = "0.24.0"
+log = "0.4"
+rand = "0.8.5"
+tui = "0.18.0"
+tui-logger = "0.8.0"
