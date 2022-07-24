@@ -109,23 +109,15 @@ fn run_game_loop<B: Backend, T: Tetris>(
 fn draw_game<B: Backend, T: Tetris>(f: &mut Frame<B>, tetris: &mut T) {
     let size = f.size();
 
-    let (_width, height) = tetris.board_size();
-
-    let len = (size.height as f32 * 0.7 / height as f32) as u16 * height as u16;
-
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Length(3), Constraint::Length(len)].as_ref())
+        .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
         .split(size);
 
     let title = draw_title();
     f.render_widget(title, chunks[0]);
 
     draw_game_board(f, tetris, chunks[1]);
-
-    // // Logs
-    // let logs = draw_logs();
-    // f.render_widget(logs, chunks[2]);
 }
 
 fn draw_title<'a>() -> Paragraph<'a> {
@@ -176,10 +168,21 @@ fn draw_game_board<B: Backend, T: Tetris>(f: &mut Frame<B>, tetris: &mut T, area
     f.render_widget(block, area);
 
     let (width, height) = tetris.board_size();
-    let board_cells = split_rect_into_tetris_squre(chunks[1], width, height);
 
-    let block_width = chunks[1].width / width as u16;
-    let block_height = chunks[1].height / height as u16;
+    let area_width = chunks[1].width as i32;
+    let area_height = chunks[1].height as i32;
+
+    let block_width = area_width / width * width;
+    let block_height = area_height / height * height;
+
+    let block_area = Rect {
+        x: chunks[1].x + 2,
+        y: chunks[1].y,
+        width: block_width as u16,
+        height: block_height as u16,
+    };
+
+    let board_cells = split_rect_into_tetris_squre(block_area, width, height);
 
     for (index, cell) in board_cells.into_iter().enumerate() {
         let (x, y) = convert_index_to_cords(index as i32, width);
@@ -189,19 +192,12 @@ fn draw_game_board<B: Backend, T: Tetris>(f: &mut Frame<B>, tetris: &mut T, area
             Color::Rgb(127, 127, 127)
         };
 
-        let rect = Rect {
-            x: cell.x + 1,
-            y: cell.y + 1,
-            width: block_width,
-            height: block_height,
-        };
-
         let block = Block::default()
-            .borders(Borders::ALL)
-            .border_style(Style::default().bg(color))
-            .border_type(BorderType::Plain);
+            .style(Style::default().bg(color))
+            .border_type(BorderType::Plain)
+            .borders(Borders::all());
 
-        f.render_widget(block, rect);
+        f.render_widget(block, cell);
     }
 
     // Logs
@@ -226,6 +222,7 @@ fn split_rect_by_direction(area: Rect, counts: i32, dir: Direction) -> Vec<Rect>
     Layout::default()
         .direction(dir)
         .constraints(constraints.as_ref())
+        .margin(0)
         .split(area)
 }
 
