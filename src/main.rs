@@ -7,7 +7,6 @@ fn main() -> Result<(), io::Error> {
     tui_logger::init_logger(log::LevelFilter::Debug).unwrap();
     tui_logger::set_default_level(log::LevelFilter::Debug);
 
-    ui::run_app()?;
-
+    ui::tui::run_tui_app()?;
     Ok(())
 }
